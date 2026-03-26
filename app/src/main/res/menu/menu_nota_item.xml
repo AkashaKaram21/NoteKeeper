@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_move_to_bin"
+        android:title="Moure a la paperera" />
+
+    <item
+        android:id="@+id/action_edit_note"
+        android:title="Editar nota"/>
+    <item
+        android:id="@+id/action_pin_note"
+        android:title="Ancorar la nota"/>
+
+</menu>

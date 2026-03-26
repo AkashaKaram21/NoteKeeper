@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/background_app"
+    android:padding="16dp"
+    tools:context=".Home">
+
+    <ImageButton
+        android:id="@+id/iBtnBin"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginEnd="20dp"
+        android:layout_marginTop="20sp"
+        android:src="@drawable/bin"
+        android:background="@android:color/transparent"
+        android:scaleType="fitCenter"
+        app:tint="@color/white" />
+
+    <ImageButton
+        android:id="@+id/iBtnStats"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:src="@drawable/recyclar"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/iBtnBin"
+        android:layout_marginEnd="20dp"
+        android:layout_marginTop="20sp"
+        android:background="@color/transparent"
+        />
+
+    <ImageView
+        android:id="@+id/iLogo"
+        android:layout_width="200dp"
+        android:layout_height="50dp"
+        android:gravity="center"
+        android:src="@drawable/notekeeper"
+        android:layout_marginTop="20dp"
+        android:layout_marginLeft="40dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/iBtnBin" />
+
+    <SearchView
+        android:id="@+id/search"
+        android:layout_width="300dp"
+        android:layout_height="40dp"
+        android:background="@drawable/roundstyle"
+        android:backgroundTint="@color/white"
+        android:hint="Busca..."
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="20dp"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/iLogo" />
+
+    <ImageButton
+        android:id="@+id/filter"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:src="@drawable/filter_list"
+        app:layout_constraintRight_toRightOf="@id/search"
+        app:layout_constraintTop_toTopOf="@id/search"
+        android:layout_marginEnd="-40dp"
+        android:layout_marginTop="4dp"
+        android:background="@color/transparent"
+        app:tint="@color/white" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/notes"
+        android:layout_height="0dp"
+        android:layout_width="0dp"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/search"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginTop="16dp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

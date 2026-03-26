@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/background_app"
+    tools:context=".ViewModel.LogIn">
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="55dp"
+        android:src="@drawable/notekeeper"
+        android:layout_marginBottom="20dp"
+        android:id="@+id/imageLogo"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/sign_in"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintVertical_chainStyle="packed"/>
+
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="30dp"
+        android:layout_marginEnd="30dp"
+        app:cardCornerRadius="20dp"
+        android:id="@+id/sign_in"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageLogo"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.3">
+
+
+
+
+        <LinearLayout
+            android:id="@+id/cardViewLogIn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_gravity="center_horizontal"
+            android:padding="32dp"
+            android:background="@color/background_component">
+
+
+            <TextView
+                android:id="@+id/tvEmailLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="Email"
+                android:textColor="@color/white"
+                android:textSize="16sp" />
+
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:id="@+id/txtEmail"
+                android:background="@color/white"
+                android:layout_marginBottom="24dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:hint="Enter email"
+                android:textSize="16sp"
+                android:textColor="@color/black"
+                android:inputType="textEmailAddress"/>
+
+
+            <TextView
+                android:id="@+id/tvPassLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Contrasenya"
+                android:textSize="16sp"
+                android:textColor="@color/white"
+                android:layout_marginBottom="8dp"/>
+
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:id="@+id/txtPassword"
+                android:background="@color/white"
+                android:layout_marginBottom="32dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:inputType="textPassword"
+                android:hint="Enter password"
+                android:textSize="16sp"
+                android:textColor="@color/black"/>
+
+
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="Inicia sessió"
+                android:id="@+id/btnLogIn"
+                android:textSize="18dp"
+                android:textStyle="bold"
+                android:backgroundTint="@color/background_button"
+                android:textColor="@color/white"
+                app:cornerRadius="12dp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:text="Crear un compte"
+                android:textColor="@color/white"
+                android:textSize="16dp"
+                android:layout_marginTop="10dp"
+                />
+
+            <Button
+                android:id="@+id/btnInciarSession"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="Registrar-se"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/background_button"
+                android:textStyle="bold"
+                android:textSize="18dp"
+                app:cornerRadius="12dp"
+                />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="30dp"
+        android:backgroundTint="@color/background_button"
+        android:text="He oblidat la contrasenya"
+        android:textStyle="bold"
+        android:textSize="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginEnd="20sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:cornerRadius="12dp"
+        />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

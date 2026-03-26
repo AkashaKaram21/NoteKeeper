@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="background_component">#1D1E33</color>
+    <color name="background_component_selected">#FF111328</color>
+    <color name="background_app">#0E0B20</color>
+    <color name="background_button">#EB1555</color>
+    <color name="grey_light">#C7C7D1</color>
+    <color name="todo_background_card">#FF081A4A</color>
+    <color name="green">#4CAF50</color>
+    <color name="red">#B80C0C</color>
+    <color name="blue_light">#97ABEB</color>
+    <color name="transparent">#00000000</color>
+    <color name="yellow">#ffe670</color>
+    <color name="pink">#ffafdf</color>
+    <color name="purple">#d7b0ff</color>
+    <color name="dark_grey">#767676</color>
+    <color name="line">#DDDDDD</color>
+    <color name="bin_background">#FFFFFF</color>
+</resources>

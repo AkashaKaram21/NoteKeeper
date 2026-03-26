@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_app"
+    tools:context=".Profile">
+
+    <ImageView
+        android:id="@+id/user_icon"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:src="@drawable/usuario"
+        android:layout_marginTop="40dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        />
+
+
+    <TextView
+        android:id="@+id/user_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Usuari"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/user_icon"
+        android:layout_marginTop="16dp" />
+
+
+    <TextView
+        android:id="@+id/user_email"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="usuari@exemple.com"
+        android:textSize="14sp"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/user_name"
+        android:layout_marginTop="4dp" />
+
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/profile_card"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginTop="20dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/user_email">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <LinearLayout
+                android:id="@+id/editar_perfil"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+
+                <ImageButton
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:src="@drawable/edit_profile"
+                    android:background="@color/transparent"
+                    android:contentDescription="Edita perfil"
+                    />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Editar perfil"
+                    android:textSize="16sp"
+                    android:textColor="@color/black"
+                    android:layout_marginStart="16dp" />
+
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:id="@+id/cambiar_password"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+
+                <ImageButton
+                    android:id="@+id/icChangePassword"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:src="@drawable/password"
+                    android:background="@color/transparent"
+                    android:contentDescription="Canviar contrasenya"
+                    />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Canviar contrasenya"
+                    android:textSize="16sp"
+                    android:textColor="@color/black"
+                    android:layout_marginStart="16dp" />
+
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:id="@+id/notificaciones"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+
+                <ImageButton
+                    android:id="@+id/icNotification"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:src="@drawable/notification"
+                    android:background="@color/transparent"
+                    android:contentDescription="Notificaciones"
+                    />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Notificacions"
+                    android:textSize="16sp"
+                    android:textColor="@color/black"
+                    android:layout_marginStart="16dp" />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/notificaciones_switch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="?attr/selectableItemBackground"
+                android:paddingVertical="12dp">
+
+                <ImageButton
+                    android:id="@+id/icSalir"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:src="@drawable/close"
+                    android:background="@color/transparent"
+                    android:contentDescription="Tancar sessio"
+                    />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Tancar sessió"
+                    android:textSize="16sp"
+                    android:textColor="@color/red"
+                    android:layout_marginStart="16dp" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
