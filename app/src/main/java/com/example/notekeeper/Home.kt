@@ -39,6 +39,8 @@ class Home : Fragment() {
         val view = inflater.inflate(R.layout.fragment_home, container, false)
 
         val bin = view.findViewById<ImageButton>(R.id.iBtnBin)
+        // Botó per anar a gràfics
+        val stats = view.findViewById<ImageButton>(R.id.iBtnStats)
         recyclerView = view.findViewById(R.id.notes)
         search = view.findViewById(R.id.search)
 
@@ -98,6 +100,14 @@ class Home : Fragment() {
         bin.setOnClickListener {
             parentFragmentManager.beginTransaction()
                 .replace(R.id.fragmentContainer, Bin())
+                .addToBackStack(null)
+                .commit()
+        }
+
+        // Navegació a les estadístiques (Stats) - NOU
+        stats.setOnClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragmentContainer, Stats())
                 .addToBackStack(null)
                 .commit()
         }

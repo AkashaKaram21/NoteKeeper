@@ -5,13 +5,17 @@ import android.view.View
 import android.view.animation.AlphaAnimation
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import com.example.notekeeper.DataStore.DadesStats
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.notekeeper.Home
 import com.notekeeper.LogOut
 import com.notekeeper.Settings
 
-
 class MainActivity : AppCompatActivity() {
+
+    // Per mesurar el temps d'inici de sessió
+    private var startTime: Long = 0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -45,5 +49,22 @@ class MainActivity : AppCompatActivity() {
             }
             true
         }
+    }
+
+    // Quan l'usuari entra a l'app, guardem l'hora actual
+    override fun onResume() {
+        super.onResume()
+        startTime = System.currentTimeMillis()
+    }
+
+    // Quan l'usuari surt o minimitza, calculem el temps que ha passat
+    override fun onPause() {
+        super.onPause()
+        val endTime = System.currentTimeMillis()
+        val sessionTimeMillis = endTime - startTime
+
+        // Convertim a hores per al càlcul de CO2 posterior
+        val sessionHours = sessionTimeMillis.toFloat() / (1000 * 60 * 60)
+        DadesStats.horesUs += sessionHours
     }
 }

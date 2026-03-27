@@ -13,6 +13,7 @@ import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.notekeeper.DataStore.DadesStats
 import com.example.notekeeper.R
 import com.notekeeper.Retrofit.NoteAPI
 import com.notekeeper.RecyclerView.NotaItem
@@ -106,6 +107,9 @@ class Bin : Fragment() {
 
                 withContext(Dispatchers.Main) {
                     if (response?.isSuccessful == true) {
+                        // Augmentem el comptador d'eliminat
+                        DadesStats.deletes++
+
                         NoteBinList.items.remove(item)
                         applyFilter()
                         Toast.makeText(context, "Nota eliminada", Toast.LENGTH_SHORT).show()

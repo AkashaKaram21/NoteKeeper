@@ -9,8 +9,8 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.lifecycleScope
+import com.example.notekeeper.DataStore.DadesStats
 import com.example.notekeeper.R
 import com.notekeeper.Retrofit.NoteAPI
 import com.notekeeper.Retrofit.NoteRequest
@@ -80,6 +80,13 @@ class NoteEditor : Fragment() {
 
                     withContext(Dispatchers.Main) {
                         if (response.isSuccessful) {
+                            // Augmentem comptadors per fer notas
+                            if (noteIdToEdit != null) {
+                                DadesStats.updates++
+                            } else {
+                                DadesStats.creates++
+                            }
+
                             val msg = if (noteIdToEdit != null) "Nota actualitzada" else "Nota creada"
                             Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
                             requireActivity().onBackPressedDispatcher.onBackPressed()

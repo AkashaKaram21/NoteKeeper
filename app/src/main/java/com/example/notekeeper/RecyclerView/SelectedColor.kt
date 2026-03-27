@@ -1,10 +1,11 @@
 package com.notekeeper.RecyclerView
 
+import com.example.notekeeper.R
+
 /*
 * Els colors de les notes
  */
 
-import com.notekeeper.R
 
 enum class SelectedColor(val colorDisponible: Int) {
     White(R.color.white),

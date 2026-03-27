@@ -8,8 +8,8 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.viewModels
+import com.example.notekeeper.R
 import com.notekeeper.Profile
-import com.notekeeper.R
 
 class LogIn : Fragment() {
     // Connexió amb el ViewModel
