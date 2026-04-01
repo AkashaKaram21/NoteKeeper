@@ -1,32 +1,28 @@
-package com.notekeeper
+package com.example.notekeeper
 
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
-import android.widget.PopupMenu
 import android.widget.SearchView
 import android.widget.Toast
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.notekeeper.DataStore.DadesStats
-import com.example.notekeeper.R
-import com.notekeeper.Retrofit.NoteAPI
-import com.notekeeper.RecyclerView.NotaItem
-import com.notekeeper.RecyclerView.NoteBinList
-import com.notekeeper.RecyclerView.NoteList
-import com.notekeeper.RecyclerView.RecyclerViewAdapter
+import com.example.notekeeper.RecyclerView.NotaItem
+import com.example.notekeeper.RecyclerView.NoteBinList
+import com.example.notekeeper.RecyclerView.NoteList
+import com.example.notekeeper.RecyclerView.RecyclerViewAdapter
+import com.example.notekeeper.Retrofit.NoteAPI
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class Bin : Fragment() {
 
-    // Variables per a la llista, l'adaptador i el cercador
     private lateinit var recyclerView: RecyclerView
     private lateinit var recyclerViewAdapter: RecyclerViewAdapter
     private lateinit var search: SearchView
@@ -38,50 +34,41 @@ class Bin : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_bin, container, false)
+        val view = inflater.inflate(R.layout.fragment_home, container, false)
 
-        val iBtnBack = view.findViewById<ImageButton>(R.id.iBtnBack)
+        val btnBack = view.findViewById<ImageButton>(R.id.iBtnBin)
         recyclerView = view.findViewById(R.id.notes)
-        search = view.findViewById(R.id.search)
+        search = view.findViewById<SearchView>(R.id.search)
 
-        // Botó per tornar a la pantalla principal (Home)
-        iBtnBack.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragmentContainer, Home())
-                .addToBackStack(null)
-                .commit()
-        }
-
+        // Configurar el RecyclerView con layout lineal
         recyclerView.layoutManager = LinearLayoutManager(context)
 
-        // Configuració de l'adaptador per a la paperera
         recyclerViewAdapter = RecyclerViewAdapter(
-            // En l'adapter tenim les notes que estan a la paperera
             items = NoteBinList.items,
-
-            // Si cliquem una nota a la paperera, cridem a la funció per esborrar-la definitivament
-            onItemClick = { item ->
-                deleteNote(item)
-            },
-
             isBin = true,
 
-            // Si recuperem la nota, es treu de la paperera i es torna a enviar al Home
+            // Mostrar toast cuando se intenta editar una nota en la papelera
+            onItemClick = { item ->
+                Toast.makeText(context, "No es pot editar una nota a la papelera", Toast.LENGTH_SHORT).show()
+            },
+
+            // Recuperar la nota de la papelera
             onRecoverClick = { item ->
                 NoteBinList.items.remove(item)
                 NoteList.items.add(item)
                 applyFilter()
                 Toast.makeText(context, "Nota recuperada", Toast.LENGTH_SHORT).show()
-                parentFragmentManager.beginTransaction()
-                    .replace(R.id.fragmentContainer, Home())
-                    .addToBackStack(null)
-                    .commit()
+            },
+
+            // Eliminar permanentemente la nota
+            onDeleteClick = { item ->
+                deleteNotePermanently(item)
             }
         )
 
         recyclerView.adapter = recyclerViewAdapter
 
-        // Es un filtre que s'encarrega de buscar la nota si el nom coincideix amb el que es busca
+        // Configurar la búsqueda
         search.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean = false
 
@@ -92,43 +79,15 @@ class Bin : Fragment() {
             }
         })
 
-        // Botó per mostrar el menú i filtrar per categoria dins de la paperera
-        view.findViewById<ImageButton>(R.id.filter).setOnClickListener {
-            showCategoryPopupMenu(it)
+        // Volver atrás
+        btnBack.setOnClickListener {
+            parentFragmentManager.popBackStack()
         }
 
         return view
     }
-    // Aquesta funció s'encarrega de fer un delete definitiu de la nota mitjançant l'API
-    private fun deleteNote(item: NotaItem) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                val response = item.id?.let { NoteAPI.API().deleteNote(it) }
 
-                withContext(Dispatchers.Main) {
-                    if (response?.isSuccessful == true) {
-                        // Augmentem el comptador d'eliminat
-                        DadesStats.deletes++
-
-                        NoteBinList.items.remove(item)
-                        applyFilter()
-                        Toast.makeText(context, "Nota eliminada", Toast.LENGTH_SHORT).show()
-                    } else {
-                        Log.e("API", "Error al borrar: ${response?.code()}")
-                        Toast.makeText(context, "Error al eliminar", Toast.LENGTH_SHORT).show()
-                    }
-                }
-
-            } catch (e: Exception) {
-                Log.e("API", "Error de xarxa: ${e.message}")
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Error de connexió", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-    }
-
-    // Aquesta funció és un filtre per buscar per nom i categoria dins de la llista de la paperera
+    // Aplicar filtros de categoría y búsqueda
     private fun applyFilter() {
         val listaFiltrada = ArrayList<NotaItem>()
 
@@ -138,7 +97,7 @@ class Bin : Fragment() {
             if (searchedCategory == "All") {
                 coincideCategoria = true
             } else {
-                coincideCategoria = note.category.name == searchedCategory
+                coincideCategoria = note.category?.name == searchedCategory
             }
 
             val coincideNombre: Boolean
@@ -156,27 +115,36 @@ class Bin : Fragment() {
         recyclerViewAdapter.updateList(listaFiltrada)
     }
 
-    // Ens mostra un menú emergent per poder filtrar la nota segons el seu tipus
-    private fun showCategoryPopupMenu(view: View) {
-        val popup = PopupMenu(requireContext(), view)
-        popup.menuInflater.inflate(R.menu.note_filter, popup.menu)
-
-        popup.setOnMenuItemClickListener { menuItem ->
-
-            if (menuItem.itemId == R.id.category_normal) {
-                searchedCategory = "Simple"
-            } else if (menuItem.itemId == R.id.category_agenda) {
-                searchedCategory = "Reminder"
-            } else if (menuItem.itemId == R.id.category_shared) {
-                searchedCategory = "Shared"
-            } else {
-                searchedCategory = "All"
-            }
-
-            applyFilter()
-            true
+    // CORREGIDO: Eliminar nota permanentemente desde la API
+    private fun deleteNotePermanently(item: NotaItem) {
+        if (item.id == null) {
+            Toast.makeText(context, "Error: la nota no té ID", Toast.LENGTH_SHORT).show()
+            return
         }
 
-        popup.show()
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                // Llamada a la API para eliminar
+                val response = NoteAPI.API().deleteNote(item.id!!)
+
+                withContext(Dispatchers.Main) {
+                    if (response.isSuccessful) {
+                        NoteBinList.items.remove(item)
+                        recyclerViewAdapter.updateList(NoteBinList.items)
+                        applyFilter()
+                        Toast.makeText(context, "Nota eliminada permanentment", Toast.LENGTH_SHORT).show()
+                        Log.d("DELETE", "Nota eliminada permanentment: ${item.id}")
+                    } else {
+                        Log.e("API", "Error al eliminar: ${response.code()} - ${response.message()}")
+                        Toast.makeText(context, "Error al eliminar (${response.code()})", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Log.e("API_DELETE", "Error: ${e.message}")
+                    Toast.makeText(context, "Error de connexió: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 }

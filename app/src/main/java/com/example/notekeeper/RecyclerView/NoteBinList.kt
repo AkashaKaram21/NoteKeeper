@@ -1,4 +1,5 @@
-package com.notekeeper.RecyclerView
+package com.example.notekeeper.RecyclerView
+
 /*
 * Aquesta clase és un objecte que ens permet guardar el contingut de la lista de RecyclerView
  */

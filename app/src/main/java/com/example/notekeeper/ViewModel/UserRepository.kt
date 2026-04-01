@@ -1,4 +1,4 @@
-package com.notekeeper.ViewModel
+package com.example.notekeeper.ViewModel
 
 // Objecte únic per guardar les dades
 object UserRepository {

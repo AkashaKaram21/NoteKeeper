@@ -1,4 +1,4 @@
-package com.notekeeper.RecyclerView
+package com.example.notekeeper.RecyclerView
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -11,7 +11,8 @@ class RecyclerViewAdapter(
     private val onItemClick: (NotaItem) -> Unit,
     private val isBin: Boolean = false,
     private val onMoveToBinClick: ((NotaItem) -> Unit)? = null,
-    private val onRecoverClick: ((NotaItem) -> Unit)? = null
+    private val onRecoverClick: ((NotaItem) -> Unit)? = null,
+    private val onDeleteClick: ((NotaItem) -> Unit)? = null
 ) : RecyclerView.Adapter<RecyclerViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerViewHolder {
@@ -47,21 +48,18 @@ class RecyclerViewAdapter(
                         true
                     }
                     R.id.action_pin_note -> {
-                        // Si la nota ya está anclada true, la desanclamos false
                         if (item.isPinned == true) {
                             item.isPinned = false
                         } else {
-                            // Si está desanclada false o no tiene valor todavía null, la anclamos true
                             item.isPinned = true
                         }
 
-                        // Notificamos al adaptador que solo este elemento ha cambiado para que lo redibuje
                         notifyItemChanged(position)
                         true
                     }
 
                     R.id.eliminarNota -> {
-                        onItemClick(item)
+                        onDeleteClick?.invoke(item)
                         true
                     }
                     R.id.recuperarNota -> {

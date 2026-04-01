@@ -1,4 +1,4 @@
-package com.notekeeper.RecyclerView
+package com.example.notekeeper.RecyclerView
 
 /*
 * Tipus de notes que és poden crear

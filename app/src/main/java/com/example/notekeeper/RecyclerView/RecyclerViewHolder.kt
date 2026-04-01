@@ -1,4 +1,4 @@
-package com.notekeeper.RecyclerView
+package com.example.notekeeper.RecyclerView
 
 import android.view.View
 import android.widget.ImageButton
@@ -30,7 +30,15 @@ class RecyclerViewHolder(
         tvTitle.text = item.title
         tvSubtitle.text = item.subtitle
         tvText.text = item.text
-        cardNota.setCardBackgroundColor(itemView.context.getColor(item.color.colorDisponible))
+
+        // CORRECCIÓ: Si item.color és null, no cridem a colorDisponible i usem un color per defecte (ex: Color gris d'Android)
+        val colorResource = item.color?.colorDisponible
+        if (colorResource != null) {
+            cardNota.setCardBackgroundColor(itemView.context.getColor(colorResource))
+        } else {
+            // Pots canviar R.color.design_default_color_background pel color que tinguis a colors.xml per defecte
+            cardNota.setCardBackgroundColor(android.graphics.Color.LTGRAY)
+        }
 
         // Si és cert (true), mostrem la icona de fixar (l'anclat)
         if (item.isPinned == true) {
@@ -41,14 +49,12 @@ class RecyclerViewHolder(
         }
 
         // Si la nota és de tipus Recordatori (Reminder)
-        // REVISA: Que TypeNote estigui accessible
         if (item.category == TypeNote.Reminder) {
             // El timeReminder no està buit
             if (item.timeReminder != null) {
                 // Mostrem la seva icona i el timeReminder
                 tvHora.visibility = View.VISIBLE
-                // Transformem el timeReminder, que és un valor que es desa en Long,
-                // a un format d'hores i minuts amb una funció anomenada TimeTools per a l'usuari
+                // Transformem el timeReminder a format d'hores i minuts
                 tvHora.text = TimeTools.formatLongToTimeString(item.timeReminder!!)
             } else {
                 tvHora.visibility = View.GONE
@@ -67,7 +73,6 @@ class RecyclerViewHolder(
                 var textoEstado = ""
                 // Si l'estat coincideix amb SharedStatus
                 if (item.userShareStatus == SharedStatus.accepted) {
-                    // Retornem un text
                     textoEstado = "(Acceptada)"
                 } else if (item.userShareStatus == SharedStatus.rejected) {
                     textoEstado = "(Rebutjada)"

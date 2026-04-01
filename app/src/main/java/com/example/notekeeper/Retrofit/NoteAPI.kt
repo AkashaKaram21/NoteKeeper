@@ -1,24 +1,20 @@
-package com.notekeeper.Retrofit
+package com.example.notekeeper.Retrofit
 
 import com.google.gson.GsonBuilder
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
 
-/*
-* El NoteApi s'encarrega de conectar-se amb l'API
- */
 class NoteAPI {
     companion object {
-        private var mItemAPI: NoteService? = null
+        private var mItemAPI: NotasService? = null
 
         @Synchronized
-        fun API(): NoteService {
+        fun API(): NotasService {
             if (mItemAPI == null) {
 
                 val gsondateformat = GsonBuilder()
@@ -30,10 +26,10 @@ class NoteAPI {
 
                 mItemAPI = Retrofit.Builder()
                     .addConverterFactory(GsonConverterFactory.create(gsondateformat))
-                    .baseUrl("http://132.145.154.48:8081/")
+                    .baseUrl("http://129.80.194.172:8080/")
                     .client(unsafeOkHttpClient) // Afegeix el client
                     .build()
-                    .create(NoteService::class.java)
+                    .create(NotasService::class.java)
             }
             return mItemAPI!!
         }
@@ -51,7 +47,7 @@ class NoteAPI {
 
                 // Instal·la el trust manager
                 val sslContext = SSLContext.getInstance("SSL")
-                sslContext.init(null, trustAllCerts, SecureRandom())
+                sslContext.init(null, trustAllCerts, java.security.SecureRandom())
                 val sslSocketFactory = sslContext.socketFactory
 
                 return OkHttpClient.Builder()

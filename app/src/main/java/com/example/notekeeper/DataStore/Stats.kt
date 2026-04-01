@@ -1,4 +1,4 @@
-package com.notekeeper
+package com.example.notekeeper.DataStore
 
 import android.graphics.Color
 import android.os.Bundle
@@ -10,7 +10,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.notekeeper.R
-import com.example.notekeeper.DataStore.DadesStats
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet

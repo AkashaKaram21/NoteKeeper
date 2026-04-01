@@ -1,4 +1,4 @@
-package com.notekeeper.ViewModel
+package com.example.notekeeper.ViewModel
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -8,8 +8,8 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.viewModels
+import com.example.notekeeper.Profile
 import com.example.notekeeper.R
-import com.notekeeper.Profile
 
 class SignIn : Fragment() {
 

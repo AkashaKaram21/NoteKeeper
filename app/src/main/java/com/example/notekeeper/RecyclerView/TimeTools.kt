@@ -1,4 +1,4 @@
-package com.notekeeper.RecyclerView
+package com.example.notekeeper.RecyclerView
 
 /*
 * Función que transforma un valor long a hora y minutos.

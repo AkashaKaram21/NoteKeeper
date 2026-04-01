@@ -1,4 +1,4 @@
-package com.notekeeper
+package com.example.notekeeper
 
 import android.os.Bundle
 import android.util.Log
@@ -11,21 +11,19 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.example.notekeeper.DataStore.DadesStats
-import com.example.notekeeper.R
-import com.notekeeper.Retrofit.NoteAPI
-import com.notekeeper.Retrofit.NoteRequest
-import com.notekeeper.RecyclerView.NotaItem
-import com.notekeeper.RecyclerView.SelectedColor
-import com.notekeeper.RecyclerView.TypeNote
+import com.example.notekeeper.RecyclerView.NotaItem
+import com.example.notekeeper.RecyclerView.SelectedColor
+import com.example.notekeeper.RecyclerView.TypeNote
+import com.example.notekeeper.Retrofit.NoteAPI
+import com.example.notekeeper.Retrofit.NotaRequestDTO
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class NoteEditor : Fragment() {
 
     private var colorSeleccionado: SelectedColor = SelectedColor.White
-
-    // Variable per emmagatzemar l'ID si estem editant
     private var noteIdToEdit: Long? = null
 
     override fun onCreateView(
@@ -34,13 +32,12 @@ class NoteEditor : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_note_editor, container, false)
 
-        // Recuperem els elements de la UI
         val etTitle    = view.findViewById<EditText>(R.id.etTitle)
         val etSubtitle = view.findViewById<EditText>(R.id.etSubtitle)
         val etText     = view.findViewById<EditText>(R.id.etText)
         val btnClose   = view.findViewById<ImageButton>(R.id.iBtnClose)
 
-        // comprovem si tenim arguments per omplir els camps (Mode Edició)
+        // Cargar datos si estamos editando
         arguments?.let { bundle ->
             if (bundle.containsKey("NOTE_ID")) {
                 noteIdToEdit = bundle.getLong("NOTE_ID")
@@ -52,53 +49,48 @@ class NoteEditor : Fragment() {
 
         val categoriaStr = arguments?.getString("CATEGORIA") ?: "Simple"
 
+        // Guardar o actualizar nota al cerrar
         btnClose.setOnClickListener {
-            // Decidim si crear o actualitzar segons si tenim ID
             lifecycleScope.launch(Dispatchers.IO) {
                 try {
                     val response = if (noteIdToEdit != null) {
-                        // Creem l'objecte NotaItem per a l'actualització (@PUT)
-                        val notaActualitzada = NotaItem(
-                            id = noteIdToEdit,
+                        // CORREGIDO: Usar NotaRequestDTO para la actualización
+                        val notaActualitzada = NotaRequestDTO(
                             title = etTitle.text.toString(),
                             subtitle = etSubtitle.text.toString(),
-                            text = etText.text.toString(),
-                            category = TypeNote.valueOf(categoriaStr)
+                            text = etText.text.toString()
                         )
+                        Log.d("EDIT", "Editant nota amb ID: $noteIdToEdit")
                         NoteAPI.API().updateNote(noteIdToEdit!!, notaActualitzada)
                     } else {
-                        // Creem l'objecte NoteRequest per a nota nova (@POST)
-                        val nuevaNota = NoteRequest(
+                        // CORREGIDO: Usar NotaRequestDTO para la creación
+                        val nuevaNota = NotaRequestDTO(
                             title = etTitle.text.toString(),
                             subtitle = etSubtitle.text.toString(),
-                            text = etText.text.toString(),
-                            category = TypeNote.valueOf(categoriaStr),
-                            color = colorSeleccionado
+                            text = etText.text.toString()
                         )
+                        Log.d("CREATE", "Creant nova nota")
                         NoteAPI.API().createNote(nuevaNota)
                     }
 
                     withContext(Dispatchers.Main) {
                         if (response.isSuccessful) {
-                            // Augmentem comptadors per fer notas
-                            if (noteIdToEdit != null) {
-                                DadesStats.updates++
-                            } else {
-                                DadesStats.creates++
-                            }
-
                             val msg = if (noteIdToEdit != null) "Nota actualitzada" else "Nota creada"
                             Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                            Log.d("SUCCESS", msg)
+
+                            // Esperamos 1 segundo para que la UI se actualice
+                            delay(1000)
                             requireActivity().onBackPressedDispatcher.onBackPressed()
                         } else {
-                            Log.e("API", "Error: ${response.code()}")
-                            Toast.makeText(context, "Error al desar la nota", Toast.LENGTH_SHORT).show()
+                            Log.e("API", "Error: ${response.code()} - ${response.message()}")
+                            Toast.makeText(context, "Error al desar la nota (${response.code()})", Toast.LENGTH_SHORT).show()
                         }
                     }
                 } catch (e: Exception) {
-                    Log.e("API_ERROR", "Error: ${e.message}")
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(context, "Error de connexió amb el servidor", Toast.LENGTH_SHORT).show()
+                        Log.e("API_ERROR", "Error: ${e.message}")
+                        Toast.makeText(context, "Error de connexió: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
                     }
                 }
             }

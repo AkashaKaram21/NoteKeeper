@@ -1,4 +1,4 @@
-package com.notekeeper.RecyclerView
+package com.example.notekeeper.RecyclerView
 
 import com.example.notekeeper.R
 

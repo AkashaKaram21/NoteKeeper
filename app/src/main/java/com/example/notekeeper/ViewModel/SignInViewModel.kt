@@ -1,4 +1,4 @@
-package com.notekeeper.ViewModel
+package com.example.notekeeper.ViewModel
 
 import android.graphics.Color
 import androidx.lifecycle.LiveData

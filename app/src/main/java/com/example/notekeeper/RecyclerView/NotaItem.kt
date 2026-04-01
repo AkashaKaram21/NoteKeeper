@@ -1,6 +1,7 @@
-package com.notekeeper.RecyclerView
+package com.example.notekeeper.RecyclerView
+
 /*
-* Aquesta  data class representa els elements que ha de tenir la llista del RecyclerView
+* Aquesta data class representa els elements que ha de tenir la llista del RecyclerView
  */
 data class NotaItem(
     //Tenim que declarat el tipus de variable i el valor que guarda dins

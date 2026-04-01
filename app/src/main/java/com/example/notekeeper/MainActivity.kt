@@ -7,9 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.notekeeper.DataStore.DadesStats
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.notekeeper.Home
-import com.notekeeper.LogOut
-import com.notekeeper.Settings
+
 
 class MainActivity : AppCompatActivity() {
 
