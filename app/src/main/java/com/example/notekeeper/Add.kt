@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import com.example.notekeeper.RecyclerView.TypeNote
+import com.example.notekeeper.DataStore.StatsTracker
 
 class Add : Fragment() {
 
@@ -31,6 +32,7 @@ class Add : Fragment() {
     private fun obrirPerCategoria(view: View, botonId: Int, tipoNota: TypeNote) {
         view.findViewById<Button>(botonId).setOnClickListener {
 
+
             //Passem la categoria
             val noteEditor = NoteEditor().apply {
                 arguments = Bundle().apply {
@@ -45,4 +47,15 @@ class Add : Fragment() {
                 .commit()
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+        StatsTracker.startSession()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        StatsTracker.endSession()
+    }
+
 }

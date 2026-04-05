@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import com.example.notekeeper.DataStore.StatsTracker
 import com.example.notekeeper.ViewModel.LogIn
 
 class LogOut : Fragment() {
@@ -14,13 +15,14 @@ class LogOut : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
-        val view =  inflater.inflate(R.layout.fragment_log_out, container, false)
 
+        val view = inflater.inflate(R.layout.fragment_log_out, container, false)
+
+        // Botón para volver a iniciar sesión
         val btnInciarSession = view.findViewById<Button>(R.id.btnInciarSession)
 
         btnInciarSession.setOnClickListener {
-            //Permite passar de un fragment a otro
+            // Cambiar al fragmento de inicio de sesión
             parentFragmentManager.beginTransaction()
                 .replace(R.id.fragmentContainer, LogIn())
                 .addToBackStack(null)
@@ -28,5 +30,17 @@ class LogOut : Fragment() {
         }
 
         return view
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Iniciar conteo de tiempo en pantalla
+        StatsTracker.startSession()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // Guardar tiempo al salir
+        StatsTracker.endSession()
     }
 }

@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
+import com.example.notekeeper.DataStore.StatsTracker
 import com.example.notekeeper.R
 
 class Profile : Fragment() {
@@ -14,28 +15,22 @@ class Profile : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
         val view = inflater.inflate(R.layout.fragment_profile, container, false)
 
-        //Tenemos que indentificar el ImageButton por su ID
         val icChangePassword = view.findViewById<ImageButton>(R.id.icChangePassword)
-
         val icLogOut = view.findViewById<ImageButton>(R.id.icSalir)
 
-        //Cunado lo des clic
+        // Botón para cerrar sesión
         icLogOut.setOnClickListener {
-
-            //Permite passar de un fragment a otro
             parentFragmentManager.beginTransaction()
                 .replace(R.id.fragmentContainer, LogOut())
                 .addToBackStack(null)
                 .commit()
         }
 
-
-        //Cunado lo des clic
+        // Botón para cambiar contraseña
         icChangePassword.setOnClickListener {
-
-            //Permite passar de un fragment a otro
             parentFragmentManager.beginTransaction()
                 .replace(R.id.fragmentContainer, ChangePassword())
                 .addToBackStack(null)
@@ -43,5 +38,17 @@ class Profile : Fragment() {
         }
 
         return view
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Iniciar conteo de tiempo en pantalla
+        StatsTracker.startSession()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // Guardar tiempo al salir
+        StatsTracker.endSession()
     }
 }
