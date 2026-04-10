@@ -74,7 +74,6 @@ class NoteEditor : Fragment() {
                         title,
                         subtitle,
                         text,
-                        categoriaSeleccionada
                     )
 
                     if (!isNewNote && noteIdToEdit != null) {

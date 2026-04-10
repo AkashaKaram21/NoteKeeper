@@ -166,7 +166,7 @@ class Home : Fragment() {
                                     title = dto.title,
                                     subtitle = dto.subtitle,
                                     text = dto.text,
-                                    category = TypeNote.valueOf(dto.category),
+                                    category = TypeNote.Simple,  // ✅ Todas son Simple por defecto
                                     color = SelectedColor.White,
                                     isPinned = false,
                                     timeReminder = null,
@@ -181,6 +181,9 @@ class Home : Fragment() {
 
                             recyclerViewAdapter.updateList(NoteList.items)
                             applyFilter()
+
+                            Log.d("API", "✅ ${notasItem.size} notes cargadas correctamente")
+
                         }
 
                     } else {
@@ -192,7 +195,7 @@ class Home : Fragment() {
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     Log.e("API", "Error: ${e.message}")
-                    Toast.makeText(context, "Error de connexió", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Error de connexió: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
                 }
             }
         }

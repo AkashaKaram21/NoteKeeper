@@ -1,6 +1,9 @@
 package com.example.notekeeper
 
+import android.content.Intent
 import android.os.Bundle
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
 import android.view.View
 import android.view.animation.AlphaAnimation
 import androidx.appcompat.app.AppCompatActivity
@@ -15,12 +18,18 @@ import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import android.speech.RecognitionListener
 
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var recognizer: SpeechRecognizer
+    private lateinit var recognizerIntent: Intent
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        setupVoiceRecognizer()
 
         FirebaseApp.initializeApp(this)
 
@@ -91,6 +100,67 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    fun startVoice() {
+        recognizer.startListening(recognizerIntent)
+    }
+
+    private fun setupVoiceRecognizer() {
+        recognizer = SpeechRecognizer.createSpeechRecognizer(this)
+
+        recognizerIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "es-ES")
+        }
+
+        recognizer.setRecognitionListener(object : RecognitionListener {
+            override fun onResults(results: Bundle?) {
+                val text = results
+                    ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                    ?.firstOrNull()
+                    ?.lowercase()
+
+                handleVoiceCommand(text)
+            }
+
+            override fun onError(error: Int) {}
+            override fun onReadyForSpeech(params: Bundle?) {}
+            override fun onBeginningOfSpeech() {}
+            override fun onRmsChanged(rmsdB: Float) {}
+            override fun onBufferReceived(buffer: ByteArray?) {}
+            override fun onEndOfSpeech() {}
+            override fun onPartialResults(partialResults: Bundle?) {}
+            override fun onEvent(eventType: Int, params: Bundle?) {}
+        })
+    }
+
+    private fun handleVoiceCommand(command: String?) {
+
+        val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
+
+        when {
+            command?.contains("home", ignoreCase = true) == true -> {
+                bottomNav.selectedItemId = R.id.nav_home
+            }
+            command?.contains("add", ignoreCase = true) == true ||
+                    command?.contains("añadir", ignoreCase = true) == true -> {
+                bottomNav.selectedItemId = R.id.nav_add
+            }
+            command?.contains("settings", ignoreCase = true) == true ||
+                    command?.contains("ajustes", ignoreCase = true) == true -> {
+                bottomNav.selectedItemId = R.id.nav_settings
+            }
+            command?.contains("profile", ignoreCase = true) == true ||
+                    command?.contains("perfil", ignoreCase = true) == true -> {
+                bottomNav.selectedItemId = R.id.nav_profile
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        recognizer.destroy()
+    }
+
     override fun onResume() {
         super.onResume()
         // Iniciar conteo de tiempo en pantalla
@@ -107,4 +177,5 @@ class MainActivity : AppCompatActivity() {
             UserStatsDataStore.save(this@MainActivity)
         }
     }
+
 }
