@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
-import com.example.notekeeper.DataStore.StatsTracker
 import com.example.notekeeper.R
 
 class Profile : Fragment() {
@@ -38,17 +37,5 @@ class Profile : Fragment() {
         }
 
         return view
-    }
-
-    override fun onResume() {
-        super.onResume()
-        // Iniciar conteo de tiempo en pantalla
-        StatsTracker.startSession()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        // Guardar tiempo al salir
-        StatsTracker.endSession()
     }
 }

@@ -10,7 +10,7 @@ class LogInViewModel : ViewModel() {
     // Estats de l'acció de login
     enum class LoginAction { LOGIN_OK, NONE }
 
-    // Variables internes per controlar els canvis (LiveData)
+    // Variables internes per controlar els canvis
     private val _loginActionEvent = MutableLiveData<LoginAction>(LoginAction.NONE)
     val loginActionEvent: LiveData<LoginAction> = _loginActionEvent
 
@@ -43,14 +43,14 @@ class LogInViewModel : ViewModel() {
         } else {
             if (emailEsValido) {
                 _emailLabelText.value = "Email - ¡Vàlid!"
-                _emailLabelColor.value = Color.parseColor("#2ecc71") // Verd
+                _emailLabelColor.value = Color.parseColor("#2ecc71")
             } else {
                 _emailLabelText.value = "Email - Invàlid"
-                _emailLabelColor.value = Color.parseColor("#e74c3c") // Vermell
+                _emailLabelColor.value = Color.parseColor("#e74c3c")
             }
         }
 
-        // Valida la contrasenya (ha de ser forta)
+        // Valida la contrasenya
         val passEsFuerte = isStrongPassword(passwordInput)
 
         if (passwordInput.isEmpty()) {

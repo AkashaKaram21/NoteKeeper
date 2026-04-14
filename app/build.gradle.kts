@@ -1,6 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
-    id("com.google.gms.google-services")
+    //id("com.google.gms.google-services")
 }
 
 android {
@@ -38,11 +38,6 @@ android {
 }
 
 dependencies {
-    // Firebase BoM - Gestiona les versions automàticament
-    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
-    implementation("com.google.firebase:firebase-firestore")
-    implementation("com.google.firebase:firebase-analytics")
-
     // AndroidX i UI
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -81,10 +76,6 @@ dependencies {
     // DataStore Preferences (reemplaza SharedPreferences)
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
-    // Firebase Firestore
-    implementation("com.google.firebase:firebase-firestore-ktx:24.9.1")
-    implementation("com.google.firebase:firebase-analytics-ktx:21.5.0")
-
     // Coroutines (para DataStore y Firebase)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
@@ -92,5 +83,12 @@ dependencies {
     // Lifecycle
     implementation("androidx.lifecycle:lifecycle-process:2.6.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
+
+    implementation("com.google.android.gms:play-services-base:18.2.0")
+
+    implementation("com.google.android.gms:play-services-base:18.2.0")
+
+    implementation("com.google.android.material:material:1.9.0")
+    implementation("androidx.appcompat:appcompat:1.6.1")
 
 }

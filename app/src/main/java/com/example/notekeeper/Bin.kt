@@ -1,32 +1,27 @@
 package com.example.notekeeper
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
+import android.widget.PopupMenu
 import android.widget.SearchView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.notekeeper.DataStore.StatsTracker
-import com.example.notekeeper.RecyclerView.NotaItem
-import com.example.notekeeper.RecyclerView.NoteBinList
-import com.example.notekeeper.RecyclerView.NoteList
-import com.example.notekeeper.RecyclerView.RecyclerViewAdapter
-import com.example.notekeeper.Retrofit.NotesAPI
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.example.notekeeper.RecyclerView.*
+import com.example.notekeeper.ViewModel.NotesViewModel
 
 class Bin : Fragment() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var recyclerViewAdapter: RecyclerViewAdapter
     private lateinit var search: SearchView
+
+    private val viewModel: NotesViewModel by viewModels()
 
     var searchedCategory: String = "All"
     var searchedName: String = ""
@@ -73,7 +68,14 @@ class Bin : Fragment() {
 
             // Eliminar nota permanentemente
             onDeleteClick = { item ->
-                deleteNotePermanently(item)
+                if (item.id != null) {
+                    viewModel.deleteNote(item.id!!)
+                    NoteBinList.items.remove(item)
+                    applyFilter()
+                    Toast.makeText(context, "Nota eliminada permanentment", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(context, "Error: la nota no té ID", Toast.LENGTH_SHORT).show()
+                }
             }
         )
 
@@ -90,7 +92,36 @@ class Bin : Fragment() {
             }
         })
 
+        // Observador de errores
+        viewModel.errorMessage.observe(viewLifecycleOwner) { errorMsg ->
+            Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+        }
+
         return view
+    }
+
+    // Ens mostra un menú emergent per poder filtrar la nota segons el seu tipus
+    private fun showCategoryPopupMenu(view: View) {
+        val popup = PopupMenu(requireContext(), view)
+        popup.menuInflater.inflate(R.menu.note_filter, popup.menu)
+
+        popup.setOnMenuItemClickListener { menuItem ->
+
+            if (menuItem.itemId == R.id.category_normal) {
+                searchedCategory = "Simple"
+            } else if (menuItem.itemId == R.id.category_agenda) {
+                searchedCategory = "Reminder"
+            } else if (menuItem.itemId == R.id.category_shared) {
+                searchedCategory = "Shared"
+            } else {
+                searchedCategory = "All"
+            }
+
+            applyFilter()
+            true
+        }
+
+        popup.show()
     }
 
     // Aplicar filtros de categoría y búsqueda
@@ -99,13 +130,19 @@ class Bin : Fragment() {
 
         for (note in NoteBinList.items) {
 
-            val coincideCategoria =
-                if (searchedCategory == "All") true
-                else note.category?.name == searchedCategory
+            val coincideCategoria: Boolean
+            if (searchedCategory == "All") {
+                coincideCategoria = true
+            } else {
+                coincideCategoria = note.category.name == searchedCategory
+            }
 
-            val coincideNombre =
-                if (searchedName.isEmpty()) true
-                else note.title.lowercase().contains(searchedName)
+            val coincideNombre: Boolean
+            if (searchedName.isEmpty()) {
+                coincideNombre = true
+            } else {
+                coincideNombre = note.title.lowercase().contains(searchedName)
+            }
 
             if (coincideCategoria && coincideNombre) {
                 listaFiltrada.add(note)
@@ -113,56 +150,5 @@ class Bin : Fragment() {
         }
 
         recyclerViewAdapter.updateList(listaFiltrada)
-    }
-
-    // Eliminar nota permanentemente desde la API
-    private fun deleteNotePermanently(item: NotaItem) {
-
-        // Si no tiene ID, no se puede eliminar
-        if (item.id == null) {
-            Toast.makeText(context, "Error: la nota no té ID", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                val response = NotesAPI.API().deleteNote(item.id!!)
-
-                withContext(Dispatchers.Main) {
-                    if (response.isSuccessful) {
-
-                        // Eliminar de la lista local
-                        NoteBinList.items.remove(item)
-                        recyclerViewAdapter.updateList(NoteBinList.items)
-                        applyFilter()
-
-                        Toast.makeText(context, "Nota eliminada permanentment", Toast.LENGTH_SHORT).show()
-                        Log.d("DELETE", "Nota eliminada permanentment: ${item.id}")
-
-                    } else {
-                        Log.e("API", "Error al eliminar: ${response.code()} - ${response.message()}")
-                        Toast.makeText(context, "Error al eliminar (${response.code()})", Toast.LENGTH_SHORT).show()
-                    }
-                }
-
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    Log.e("API_DELETE", "Error: ${e.message}")
-                    Toast.makeText(context, "Error de connexió: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        // Iniciar tracking de sesión
-        StatsTracker.startSession()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        // Finalizar tracking de sesión
-        StatsTracker.endSession()
     }
 }

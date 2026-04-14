@@ -1,7 +1,6 @@
 package com.example.notekeeper
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,27 +9,19 @@ import android.widget.PopupMenu
 import android.widget.SearchView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.notekeeper.DataStore.StatsTracker
-import com.example.notekeeper.RecyclerView.NotaItem
-import com.example.notekeeper.RecyclerView.NoteBinList
-import com.example.notekeeper.RecyclerView.NoteList
-import com.example.notekeeper.RecyclerView.RecyclerViewAdapter
-import com.example.notekeeper.RecyclerView.SelectedColor
-import com.example.notekeeper.RecyclerView.SharedStatus
-import com.example.notekeeper.RecyclerView.TypeNote
-import com.example.notekeeper.Retrofit.NotesAPI
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.example.notekeeper.RecyclerView.*
+import com.example.notekeeper.ViewModel.NotesViewModel
 
 class Home : Fragment() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var recyclerViewAdapter: RecyclerViewAdapter
     private lateinit var search: SearchView
+
+    private val viewModel: NotesViewModel by viewModels()
 
     var searchedCategory: String = "All"
     var searchedName: String = ""
@@ -48,16 +39,6 @@ class Home : Fragment() {
         bin.setOnClickListener {
             parentFragmentManager.beginTransaction()
                 .replace(R.id.fragmentContainer, Bin())
-                .addToBackStack(null)
-                .commit()
-        }
-
-        val btnStats = view.findViewById<ImageButton>(R.id.iBtnStats)
-
-        // Abrir estadísticas
-        btnStats.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragmentContainer, com.example.notekeeper.DataStore.Stats())
                 .addToBackStack(null)
                 .commit()
         }
@@ -100,7 +81,14 @@ class Home : Fragment() {
 
             // Eliminar nota definitivamente
             onDeleteClick = { item ->
-                deleteNote(item)
+                if (item.id != null) {
+                    viewModel.deleteNote(item.id!!)
+                    NoteList.items.remove(item)
+                    applyFilter()
+                    Toast.makeText(context, "Nota eliminada", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(context, "Error: la nota no té ID", Toast.LENGTH_SHORT).show()
+                }
             }
         )
 
@@ -122,98 +110,54 @@ class Home : Fragment() {
             showCategoryPopupMenu(it)
         }
 
+        // Observadores del ViewModel para cargar la API
+        viewModel.notasLoaded.observe(viewLifecycleOwner) { notasDTO ->
+            NoteList.items.clear()
+            val notasItem = notasDTO.map { dto ->
+                NotaItem(
+                    id = dto.id,
+                    title = dto.title,
+                    subtitle = dto.subtitle,
+                    text = dto.text,
+                    category = TypeNote.Simple,
+                    color = SelectedColor.White,
+                    isPinned = false,
+                    timeReminder = null,
+                    userShared = null,
+                    userShareStatus = SharedStatus.pending,
+                    ownerId = null
+                )
+            }
+            NoteList.items.addAll(notasItem)
+            recyclerViewAdapter.updateList(NoteList.items)
+            applyFilter()
+        }
+
+        viewModel.errorMessage.observe(viewLifecycleOwner) { errorMsg ->
+            Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+        }
+
         return view
     }
-
-    override fun onResume() {
-        super.onResume()
-
-        // Iniciar tracking de sesión
-        StatsTracker.startSession()
-
-        // Esperar un poco antes de recargar notas
-        recyclerView.postDelayed({
-            loadNotesFromAPI()
-        }, 300)
-    }
-
-    override fun onPause() {
-        super.onPause()
-        // Finalizar tracking de sesión
-        StatsTracker.endSession()
-    }
-
-    // Cargar notas desde la API
-    private fun loadNotesFromAPI() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                val response = NotesAPI.API().getAllNotes()
-
-                withContext(Dispatchers.Main) {
-                    if (response.isSuccessful) {
-
-                        val notasResponseDTO = response.body()
-
-                        if (notasResponseDTO != null) {
-
-                            // Limpiar lista actual
-                            NoteList.items.clear()
-
-                            // Convertir DTO a NotaItem
-                            val notasItem = notasResponseDTO.map { dto ->
-                                NotaItem(
-                                    id = dto.id,
-                                    title = dto.title,
-                                    subtitle = dto.subtitle,
-                                    text = dto.text,
-                                    category = TypeNote.Simple,  // ✅ Todas son Simple por defecto
-                                    color = SelectedColor.White,
-                                    isPinned = false,
-                                    timeReminder = null,
-                                    userShared = null,
-                                    userShareStatus = SharedStatus.pending,
-                                    ownerId = null
-                                )
-                            }
-
-                            // Añadir notas cargadas
-                            NoteList.items.addAll(notasItem)
-
-                            recyclerViewAdapter.updateList(NoteList.items)
-                            applyFilter()
-
-                            Log.d("API", "✅ ${notasItem.size} notes cargadas correctamente")
-
-                        }
-
-                    } else {
-                        Log.e("API", "Error al cargar: ${response.code()}")
-                        Toast.makeText(context, "Error al cargar les notes", Toast.LENGTH_SHORT).show()
-                    }
-                }
-
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    Log.e("API", "Error: ${e.message}")
-                    Toast.makeText(context, "Error de connexió: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-    }
-
-    // Aplicar filtros de categoría y búsqueda
+    // Aquesta funció és un filtre per buscar per nom i categoria dins de la llista principal
     private fun applyFilter() {
         val listaFiltrada = ArrayList<NotaItem>()
 
         for (note in NoteList.items) {
 
-            val coincideCategoria =
-                if (searchedCategory == "All") true
-                else note.category.name == searchedCategory
+            val coincideCategoria: Boolean
+            if (searchedCategory == "All") {
+                coincideCategoria = true
+            } else {
+                coincideCategoria = note.category.name == searchedCategory
+            }
 
-            val coincideNombre =
-                if (searchedName.isEmpty()) true
-                else note.title.lowercase().contains(searchedName)
+            val coincideNombre: Boolean
+            if (searchedName.isEmpty()) {
+                coincideNombre = true
+            } else {
+                coincideNombre = note.title.lowercase().contains(searchedName)
+            }
 
             if (coincideCategoria && coincideNombre) {
                 listaFiltrada.add(note)
@@ -230,11 +174,14 @@ class Home : Fragment() {
 
         popup.setOnMenuItemClickListener { menuItem ->
 
-            searchedCategory = when (menuItem.itemId) {
-                R.id.category_normal -> "Simple"
-                R.id.category_agenda -> "Reminder"
-                R.id.category_shared -> "Shared"
-                else -> "All"
+            if (menuItem.itemId == R.id.category_normal) {
+                searchedCategory = "Simple"
+            } else if (menuItem.itemId == R.id.category_agenda) {
+                searchedCategory = "Reminder"
+            } else if (menuItem.itemId == R.id.category_shared) {
+                searchedCategory = "Shared"
+            } else {
+                searchedCategory = "All"
             }
 
             applyFilter()
@@ -244,45 +191,12 @@ class Home : Fragment() {
         popup.show()
     }
 
-    // Eliminar nota desde la API
-    private fun deleteNote(item: NotaItem) {
+    //funció que te permite navegar entre fragmento con la voz
+    fun filtraPorTitulo(query: String) {
+        Toast.makeText(context, "Buscando nota: $query", Toast.LENGTH_SHORT).show()
 
-        if (item.id == null) {
-            Toast.makeText(context, "Error: la nota no té ID", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                val response = NotesAPI.API().deleteNote(item.id!!)
-
-                withContext(Dispatchers.Main) {
-                    if (response.isSuccessful) {
-
-                        // Track solo si se eliminó correctamente
-                        StatsTracker.trackDelete()
-
-                        NoteList.items.remove(item)
-                        NoteBinList.items.remove(item)
-
-                        recyclerViewAdapter.updateList(NoteList.items)
-                        applyFilter()
-
-                        Toast.makeText(context, "Nota eliminada", Toast.LENGTH_SHORT).show()
-                        Log.d("DELETE", "Nota eliminada: ${item.id}")
-
-                    } else {
-                        Log.e("API", "Error al eliminar: ${response.code()} - ${response.message()}")
-                        Toast.makeText(context, "Error al eliminar (${response.code()})", Toast.LENGTH_SHORT).show()
-                    }
-                }
-
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    Log.e("API_DELETE", "Error: ${e.message}")
-                    Toast.makeText(context, "Error de connexió: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
+        search.setQuery(query, true)
+        searchedName = query.lowercase()
+        applyFilter()
     }
 }

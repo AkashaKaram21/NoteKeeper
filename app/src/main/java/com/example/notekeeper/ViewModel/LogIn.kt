@@ -44,7 +44,7 @@ class LogIn : Fragment() {
 
         // "Observers": Escoltant canvis del ViewModel per actualitzar la UI
         logInViewModel.isLoginEnabled.observe(viewLifecycleOwner) { activo ->
-            btnLogIn.isEnabled = activo // Activa/Desactiva botó
+            btnLogIn.isEnabled = activo
         }
         logInViewModel.emailLabelText.observe(viewLifecycleOwner) { nuevoTexto ->
             tvEmailLabel.text = nuevoTexto
@@ -74,7 +74,7 @@ class LogIn : Fragment() {
             }
         }
 
-        // Si hi ha un error (contrasenya malament), mostrem un Toast
+        // Si hi ha un error, mostrem un Toast
         logInViewModel.errorMessage.observe(viewLifecycleOwner) { error ->
             error?.let {
                 Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()

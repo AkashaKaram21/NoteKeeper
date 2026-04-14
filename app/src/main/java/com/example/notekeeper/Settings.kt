@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import com.example.notekeeper.DataStore.StatsTracker
 import com.example.notekeeper.ViewModel.LogIn
 
 class Settings : Fragment() {
@@ -30,17 +29,5 @@ class Settings : Fragment() {
         }
 
         return view
-    }
-
-    override fun onResume() {
-        super.onResume()
-        // Iniciar conteo de tiempo en pantalla
-        StatsTracker.startSession()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        // Guardar tiempo al salir
-        StatsTracker.endSession()
     }
 }

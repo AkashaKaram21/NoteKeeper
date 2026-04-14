@@ -1,6 +1,8 @@
 package com.example.notekeeper
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
@@ -8,62 +10,27 @@ import android.view.View
 import android.view.animation.AlphaAnimation
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
-import com.example.notekeeper.DataStore.StatsTracker
-import com.example.notekeeper.DataStore.UserStatsDataStore
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.firebase.FirebaseApp
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import android.speech.RecognitionListener
+import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var recognizer: SpeechRecognizer
     private lateinit var recognizerIntent: Intent
 
+    //Para identificar la petición de permisos
+    private val RECORD_AUDIO_REQUEST_CODE = 1
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        //Pedir permiso
+        checkAudioPermission()
         setupVoiceRecognizer()
-
-        FirebaseApp.initializeApp(this)
-
-        // Cargar estadísticas guardadas en DataStore y Firestore
-        lifecycleScope.launch(Dispatchers.IO) {
-
-            // Cargar datos locales
-            UserStatsDataStore.load(this@MainActivity)
-
-            // Cargar datos remotos y sumarlos
-            try {
-                val db = Firebase.firestore
-                val doc = db.collection("stats").document("usuari1").get().await()
-
-                if (doc.exists()) {
-                    val creates = doc.getLong("creates")?.toInt() ?: 0
-                    val updates = doc.getLong("updates")?.toInt() ?: 0
-                    val deletes = doc.getLong("deletes")?.toInt() ?: 0
-                    val hours = doc.getDouble("hours")?.toFloat() ?: 0f
-
-                    StatsTracker.creates = creates
-                    StatsTracker.updates = updates
-                    StatsTracker.deletes = deletes
-
-                    // Convertir horas a milisegundos y sumarlas
-                    val firebaseTimeMs = (hours * 60 * 60 * 1000).toLong()
-                    StatsTracker.addLoadedTimeMs(firebaseTimeMs)
-                }
-
-            } catch (e: Exception) {
-                // Si falla Firestore, seguimos con los datos locales
-                android.util.Log.e("Firestore", "Error loading stats: ${e.message}")
-            }
-        }
 
         // Animación de entrada
         val rootView = findViewById<View>(android.R.id.content)
@@ -100,15 +67,30 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun checkAudioPermission() {
+        //Es necesario darle permisos para que pueda escuchar
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), RECORD_AUDIO_REQUEST_CODE)
+        }
+    }
+
     fun startVoice() {
-        recognizer.startListening(recognizerIntent)
+        // Iniciamos el voice recognizer
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+            recognizer.startListening(recognizerIntent)
+            Toast.makeText(this, "Escuchando...", Toast.LENGTH_SHORT).show()
+        } else {
+            checkAudioPermission()
+        }
     }
 
     private fun setupVoiceRecognizer() {
+        //Configuramos para que detecte nuestra voz y el idoma
         recognizer = SpeechRecognizer.createSpeechRecognizer(this)
 
         recognizerIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            //En catalan no funcióna
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, "es-ES")
         }
 
@@ -119,7 +101,7 @@ class MainActivity : AppCompatActivity() {
                     ?.firstOrNull()
                     ?.lowercase()
 
-                handleVoiceCommand(text)
+                text?.let { handleVoiceCommand(it) }
             }
 
             override fun onError(error: Int) {}
@@ -133,49 +115,46 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    private fun handleVoiceCommand(command: String?) {
-
+    //Función que te permite mover por voz en el bottom navigation
+    private fun handleVoiceCommand(command: String) {
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
 
         when {
-            command?.contains("home", ignoreCase = true) == true -> {
+            //Es necessario poner el ignoreCase prq no detecta los accentos
+            command?.contains("home", ignoreCase = true) == true ||
+                    command?.contains("inicio", ignoreCase = true) == true -> {
                 bottomNav.selectedItemId = R.id.nav_home
+                return
             }
             command?.contains("add", ignoreCase = true) == true ||
                     command?.contains("añadir", ignoreCase = true) == true -> {
                 bottomNav.selectedItemId = R.id.nav_add
+                return
             }
             command?.contains("settings", ignoreCase = true) == true ||
                     command?.contains("ajustes", ignoreCase = true) == true -> {
                 bottomNav.selectedItemId = R.id.nav_settings
+                return
             }
             command?.contains("profile", ignoreCase = true) == true ||
                     command?.contains("perfil", ignoreCase = true) == true -> {
                 bottomNav.selectedItemId = R.id.nav_profile
+                return
+            }
+
+            command?.contains("buscar", ignoreCase = true) == true -> {
+                val query = command.replace("buscar", "").trim()
+                val currentFragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
+                if (currentFragment is Home) {
+                    currentFragment.filtraPorTitulo(query)
+                }
             }
         }
     }
 
+    //Apagamos el recognizer cuando la app se apaga
     override fun onDestroy() {
         super.onDestroy()
         recognizer.destroy()
     }
-
-    override fun onResume() {
-        super.onResume()
-        // Iniciar conteo de tiempo en pantalla
-        StatsTracker.startSession()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        // Guardar tiempo al salir
-        StatsTracker.endSession()
-
-        // Guardar estadísticas en DataStore
-        lifecycleScope.launch(Dispatchers.IO) {
-            UserStatsDataStore.save(this@MainActivity)
-        }
-    }
-
 }
