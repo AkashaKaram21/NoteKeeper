@@ -1,28 +1,43 @@
 package com.example.notekeeper
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.PopupMenu
 import android.widget.SearchView
-import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.notekeeper.RecyclerView.*
 import com.example.notekeeper.ViewModel.NotesViewModel
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class Home : Fragment() {
 
+    // RecyclerView y adaptador
     private lateinit var recyclerView: RecyclerView
     private lateinit var recyclerViewAdapter: RecyclerViewAdapter
     private lateinit var search: SearchView
 
+    // Reconocimiento de voz
+    private lateinit var recognizer: SpeechRecognizer
+    private lateinit var recognizerIntent: Intent
+
+    // ViewModel
     private val viewModel: NotesViewModel by viewModels()
 
+    // Variables de filtro
     var searchedCategory: String = "All"
     var searchedName: String = ""
 
@@ -31,11 +46,15 @@ class Home : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
 
+        // Inflar layout
         val view = inflater.inflate(R.layout.fragment_home, container, false)
 
+        // Botones
         val bin = view.findViewById<ImageButton>(R.id.iBtnBin)
+        val voiceBtn = view.findViewById<ImageButton>(R.id.voiceRecognition)
+        val filterBtn = view.findViewById<ImageButton>(R.id.filter)
 
-        // Abrir la papelera
+        // Ir a la papelera
         bin.setOnClickListener {
             parentFragmentManager.beginTransaction()
                 .replace(R.id.fragmentContainer, Bin())
@@ -43,26 +62,25 @@ class Home : Fragment() {
                 .commit()
         }
 
+        // Configurar RecyclerView
         recyclerView = view.findViewById(R.id.notes)
-        search = view.findViewById<SearchView>(R.id.search)
-
-        // Configurar RecyclerView con layout lineal
+        search = view.findViewById(R.id.search)
         recyclerView.layoutManager = LinearLayoutManager(context)
 
+        // Adaptador con acciones
         recyclerViewAdapter = RecyclerViewAdapter(
             items = NoteList.items,
 
-            // Abrir editor de notas
+            // Abrir editor
             onItemClick = { item ->
                 val editorFragment = NoteEditor()
-                val bundle = Bundle()
-
-                item.id?.let { bundle.putLong("NOTE_ID", it) }
-                bundle.putString("NOTE_TITLE", item.title)
-                bundle.putString("NOTE_SUBTITLE", item.subtitle)
-                bundle.putString("NOTE_TEXT", item.text)
-                bundle.putString("CATEGORIA", item.category.name)
-
+                val bundle = Bundle().apply {
+                    item.id?.let { putLong("NOTE_ID", it) }
+                    putString("NOTE_TITLE", item.title)
+                    putString("NOTE_SUBTITLE", item.subtitle)
+                    putString("NOTE_TEXT", item.text)
+                    putString("CATEGORIA", item.category.name)
+                }
                 editorFragment.arguments = bundle
 
                 parentFragmentManager.beginTransaction()
@@ -71,30 +89,24 @@ class Home : Fragment() {
                     .commit()
             },
 
-            // Mover nota a la papelera
+            // Mover a papelera
             onMoveToBinClick = { item ->
                 NoteList.items.remove(item)
                 NoteBinList.items.add(item)
                 applyFilter()
-                Toast.makeText(context, "Nota moguda a papelera", Toast.LENGTH_SHORT).show()
             },
 
-            // Eliminar nota definitivamente
+            // Eliminar definitivamente
             onDeleteClick = { item ->
-                if (item.id != null) {
-                    viewModel.deleteNote(item.id!!)
-                    NoteList.items.remove(item)
-                    applyFilter()
-                    Toast.makeText(context, "Nota eliminada", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(context, "Error: la nota no té ID", Toast.LENGTH_SHORT).show()
-                }
+                item.id?.let { viewModel.deleteNote(it) }
+                NoteList.items.remove(item)
+                applyFilter()
             }
         )
 
         recyclerView.adapter = recyclerViewAdapter
 
-        // Búsqueda por texto
+        // Filtro por texto
         search.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean = false
 
@@ -105,14 +117,34 @@ class Home : Fragment() {
             }
         })
 
-        // Botón de filtro por categoría
-        view.findViewById<ImageButton>(R.id.filter).setOnClickListener {
-            showCategoryPopupMenu(it)
+        // Botón de filtro
+        filterBtn.setOnClickListener { showCategoryPopupMenu(it) }
+
+        // Inicializar reconocimiento de voz
+        initVoiceRecognition()
+
+        // Botón de micrófono
+        voiceBtn.setOnClickListener {
+            // Pedir permiso si no está concedido
+            if (ContextCompat.checkSelfPermission(
+                    requireContext(),
+                    Manifest.permission.RECORD_AUDIO
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    requireActivity(),
+                    arrayOf(Manifest.permission.RECORD_AUDIO),
+                    200
+                )
+            } else {
+                startVoiceRecognition()
+            }
         }
 
-        // Observadores del ViewModel para cargar la API
+        // Cargar notas desde ViewModel
         viewModel.notasLoaded.observe(viewLifecycleOwner) { notasDTO ->
             NoteList.items.clear()
+
             val notasItem = notasDTO.map { dto ->
                 NotaItem(
                     id = dto.id,
@@ -128,36 +160,85 @@ class Home : Fragment() {
                     ownerId = null
                 )
             }
-            NoteList.items.addAll(notasItem)
-            recyclerViewAdapter.updateList(NoteList.items)
-            applyFilter()
-        }
 
-        viewModel.errorMessage.observe(viewLifecycleOwner) { errorMsg ->
-            Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+            NoteList.items.addAll(notasItem)
+            applyFilter()
         }
 
         return view
     }
-    // Aquesta funció és un filtre per buscar per nom i categoria dins de la llista principal
+
+    // Configurar reconocimiento de voz
+    private fun initVoiceRecognition() {
+        recognizer = SpeechRecognizer.createSpeechRecognizer(requireContext())
+
+        recognizerIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "ca-ES")
+        }
+
+        // Listener del reconocimiento
+        recognizer.setRecognitionListener(object : RecognitionListener {
+            override fun onReadyForSpeech(params: Bundle?) {}
+            override fun onBeginningOfSpeech() {}
+            override fun onRmsChanged(rmsdB: Float) {}
+            override fun onBufferReceived(buffer: ByteArray?) {}
+            override fun onEndOfSpeech() {}
+            override fun onError(error: Int) {}
+            override fun onPartialResults(partialResults: Bundle?) {}
+            override fun onEvent(eventType: Int, params: Bundle?) {}
+
+            // Resultado final
+            override fun onResults(results: Bundle?) {
+                val spokenText = results
+                    ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                    ?.get(0)
+                    ?.lowercase()
+
+                handleVoiceCommand(spokenText)
+            }
+        })
+    }
+
+    // Procesar comandos de voz
+    private fun handleVoiceCommand(command: String?) {
+        if (command == null) return
+
+        val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottomNav)
+
+        when {
+            command.contains("inici") || command.contains("home") ->
+                bottomNav.selectedItemId = R.id.nav_home
+
+            command.contains("afegir") || command.contains("add") || command.contains("nou") ->
+                bottomNav.selectedItemId = R.id.nav_add
+
+            command.contains("ajustos") || command.contains("settings") || command.contains("configuració") ->
+                bottomNav.selectedItemId = R.id.nav_settings
+
+            command.contains("perfil") || command.contains("profile") ->
+                bottomNav.selectedItemId = R.id.nav_profile
+        }
+    }
+
+    // Iniciar escucha del micrófono
+    private fun startVoiceRecognition() {
+        recognizer.startListening(recognizerIntent)
+    }
+
+    // Filtro por categoría y nombre
     private fun applyFilter() {
         val listaFiltrada = ArrayList<NotaItem>()
 
         for (note in NoteList.items) {
 
-            val coincideCategoria: Boolean
-            if (searchedCategory == "All") {
-                coincideCategoria = true
-            } else {
-                coincideCategoria = note.category.name == searchedCategory
-            }
+            val coincideCategoria =
+                if (searchedCategory == "All") true
+                else note.category.name == searchedCategory
 
-            val coincideNombre: Boolean
-            if (searchedName.isEmpty()) {
-                coincideNombre = true
-            } else {
-                coincideNombre = note.title.lowercase().contains(searchedName)
-            }
+            val coincideNombre =
+                if (searchedName.isEmpty()) true
+                else note.title.lowercase().contains(searchedName)
 
             if (coincideCategoria && coincideNombre) {
                 listaFiltrada.add(note)
@@ -167,7 +248,7 @@ class Home : Fragment() {
         recyclerViewAdapter.updateList(listaFiltrada)
     }
 
-    // Mostrar menú de categorías
+    // Menú emergente para filtrar por categoría
     private fun showCategoryPopupMenu(view: View) {
         val popup = PopupMenu(requireContext(), view)
         popup.menuInflater.inflate(R.menu.note_filter, popup.menu)
@@ -191,12 +272,9 @@ class Home : Fragment() {
         popup.show()
     }
 
-    //funció que te permite navegar entre fragmento con la voz
-    fun filtraPorTitulo(query: String) {
-        Toast.makeText(context, "Buscando nota: $query", Toast.LENGTH_SHORT).show()
-
-        search.setQuery(query, true)
-        searchedName = query.lowercase()
-        applyFilter()
+    // Destruir recognizer
+    override fun onDestroy() {
+        super.onDestroy()
+        recognizer.destroy()
     }
 }
