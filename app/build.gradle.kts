@@ -64,6 +64,7 @@ dependencies {
 
     // Persistència Local (DataStore) - Demanat a la rúbrica
     implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation(libs.androidx.room3.external.antlr)
 
     // Testing
     testImplementation(libs.junit)
@@ -91,4 +92,19 @@ dependencies {
     implementation("com.google.android.material:material:1.9.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
 
+    implementation("androidx.fragment:fragment-ktx:1.5.7")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
+
+    // Tests unitaris básicos
+    testImplementation("junit:junit:4.13.2")
+
+    // Necessari per testear LiveData
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
+
+    // Tests instrumentats
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
+
+    // Librería para testear Fragments en aislamiento
+    debugImplementation("androidx.fragment:fragment-testing:1.8.5")
 }

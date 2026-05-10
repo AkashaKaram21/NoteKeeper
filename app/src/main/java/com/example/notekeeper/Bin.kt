@@ -13,18 +13,16 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.notekeeper.RecyclerView.*
-import com.example.notekeeper.ViewModel.NotesViewModel
+import com.example.notekeeper.Retrofit.NotesViewModel
 
 class Bin : Fragment() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var recyclerViewAdapter: RecyclerViewAdapter
-    private lateinit var search: SearchView
+
 
     private val viewModel: NotesViewModel by viewModels()
 
-    var searchedCategory: String = "All"
-    var searchedName: String = ""
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -43,112 +41,41 @@ class Bin : Fragment() {
                 .commit()
         }
 
+        // 1. Obtenir referència al RecyclerView del layout
         recyclerView = view.findViewById(R.id.binNotes)
-        search = view.findViewById<SearchView>(R.id.binSearch)
 
-        // Configurar RecyclerView con layout lineal
+        // 2. Configurar LayoutManager (com es col·loquen les files)
         recyclerView.layoutManager = LinearLayoutManager(context)
 
         recyclerViewAdapter = RecyclerViewAdapter(
-            items = NoteBinList.items,
+            items = emptyList(),
             isBin = true,
 
             // No se puede editar una nota que está en la papelera
             onItemClick = { item ->
-                Toast.makeText(context, "No es pot editar una nota a la papelera", Toast.LENGTH_SHORT).show()
             },
 
             // Recuperar nota desde la papelera
             onRecoverClick = { item ->
-                NoteBinList.items.remove(item)
-                NoteList.items.add(item)
-                applyFilter()
-                Toast.makeText(context, "Nota recuperada", Toast.LENGTH_SHORT).show()
             },
 
             // Eliminar nota permanentemente
             onDeleteClick = { item ->
-                if (item.id != null) {
-                    viewModel.deleteNote(item.id!!)
-                    NoteBinList.items.remove(item)
-                    applyFilter()
-                    Toast.makeText(context, "Nota eliminada permanentment", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(context, "Error: la nota no té ID", Toast.LENGTH_SHORT).show()
-                }
             }
         )
 
+        // 5. Assignar l'Adapter al RecyclerView
         recyclerView.adapter = recyclerViewAdapter
 
-        // Búsqueda por texto
-        search.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean = false
-
-            override fun onQueryTextChange(newText: String?): Boolean {
-                searchedName = newText?.lowercase() ?: ""
-                applyFilter()
-                return true
-            }
-        })
-
-        // Observador de errores
-        viewModel.errorMessage.observe(viewLifecycleOwner) { errorMsg ->
-            Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+        // 6.- Avisem a l'adapter que rebra una llista
+        viewModel.notes.observe(viewLifecycleOwner) { listaNotas ->
+            recyclerViewAdapter.updateList(listaNotas)
         }
+
+        //7.- Carguem la llista
+        viewModel.cargarNotas()
 
         return view
     }
 
-    // Ens mostra un menú emergent per poder filtrar la nota segons el seu tipus
-    private fun showCategoryPopupMenu(view: View) {
-        val popup = PopupMenu(requireContext(), view)
-        popup.menuInflater.inflate(R.menu.note_filter, popup.menu)
-
-        popup.setOnMenuItemClickListener { menuItem ->
-
-            if (menuItem.itemId == R.id.category_normal) {
-                searchedCategory = "Simple"
-            } else if (menuItem.itemId == R.id.category_agenda) {
-                searchedCategory = "Reminder"
-            } else if (menuItem.itemId == R.id.category_shared) {
-                searchedCategory = "Shared"
-            } else {
-                searchedCategory = "All"
-            }
-
-            applyFilter()
-            true
-        }
-
-        popup.show()
-    }
-
-    // Aplicar filtros de categoría y búsqueda
-    private fun applyFilter() {
-        val listaFiltrada = ArrayList<NotaItem>()
-
-        for (note in NoteBinList.items) {
-
-            val coincideCategoria: Boolean
-            if (searchedCategory == "All") {
-                coincideCategoria = true
-            } else {
-                coincideCategoria = note.category.name == searchedCategory
-            }
-
-            val coincideNombre: Boolean
-            if (searchedName.isEmpty()) {
-                coincideNombre = true
-            } else {
-                coincideNombre = note.title.lowercase().contains(searchedName)
-            }
-
-            if (coincideCategoria && coincideNombre) {
-                listaFiltrada.add(note)
-            }
-        }
-
-        recyclerViewAdapter.updateList(listaFiltrada)
-    }
 }

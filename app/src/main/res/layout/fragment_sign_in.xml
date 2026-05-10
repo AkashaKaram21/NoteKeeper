@@ -96,12 +96,23 @@
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
                 android:text="Registrarse"
-                android:id="@+id/btnInciarSession"
+                android:id="@+id/btnRegistrar"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:backgroundTint="@color/background_button"
                 android:textColor="@color/white"
                 app:cornerRadius="12dp"/>
+
+            <TextView
+                    android:id="@+id/tvMissatgeError"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:textAlignment="center"
+                    android:textColor="@color/red"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:visibility="visible" />
 
         </LinearLayout>
 

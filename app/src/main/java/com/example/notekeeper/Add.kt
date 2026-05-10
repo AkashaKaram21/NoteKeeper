@@ -6,9 +6,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.content.Intent
+import androidx.fragment.app.viewModels
 import com.example.notekeeper.RecyclerView.TypeNote
+import com.example.notekeeper.Retrofit.NotesViewModel
 
 class Add : Fragment() {
+
+    private val viewModel: NotesViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -16,33 +21,36 @@ class Add : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_add, container, false)
 
-        // Passem els següents arguments a la funció
-        obrirPerCategoria(view, R.id.btnSimpleNote, TypeNote.Simple)
-        obrirPerCategoria(view, R.id.btnRemiderNote, TypeNote.Reminder)
-        obrirPerCategoria(view, R.id.btnSharedNote, TypeNote.Shared)
+
+        // Botón Simple
+        val btnSimpleNote = view.findViewById<Button>(R.id.btnSimpleNote)
+        btnSimpleNote.setOnClickListener {
+            viewModel.setCategoria(TypeNote.SIMPLE)
+            cambiarFragment()
+
+        }
+
+        // Botón Compartida
+        val btnSharedNote = view.findViewById<Button>(R.id.btnSharedNote)
+        btnSharedNote.setOnClickListener {
+            viewModel.setCategoria(TypeNote.SHARED)
+            cambiarFragment()
+        }
+
+        // Botón Recordatorio
+        val btnReminderNote = view.findViewById<Button>(R.id.btnRemiderNote)
+        btnReminderNote.setOnClickListener {
+            viewModel.setCategoria(TypeNote.REMINDER)
+            cambiarFragment()
+        }
 
         return view
     }
 
-    /*
-    * Aquesta funció passa la categoria al botón per obrir el NoteEditor d'aquesta manera segons la categoria
-    * en el NoteEditor es mostra una cosa o altra.
-     */
-    private fun obrirPerCategoria(view: View, botonId: Int, tipoNota: TypeNote) {
-        view.findViewById<Button>(botonId).setOnClickListener {
-
-            //Passem la categoria
-            val noteEditor = NoteEditor().apply {
-                arguments = Bundle().apply {
-                    putString("CATEGORIA", tipoNota.name)
-                }
-            }
-
-            //Cambiem de pantalla
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragmentContainer, noteEditor)
-                .addToBackStack(null)
-                .commit()
-        }
+    public fun cambiarFragment(){
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, NoteEditor())
+            .addToBackStack(null)
+            .commit()
     }
 }

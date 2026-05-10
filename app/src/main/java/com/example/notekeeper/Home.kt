@@ -20,41 +20,36 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.notekeeper.RecyclerView.*
-import com.example.notekeeper.ViewModel.NotesViewModel
+import com.example.notekeeper.Retrofit.NotesViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class Home : Fragment() {
 
-    // RecyclerView y adaptador
+    //Tenim que crear variables per poder accedir las clases que volem
+
+    //RecyclerView
     private lateinit var recyclerView: RecyclerView
     private lateinit var recyclerViewAdapter: RecyclerViewAdapter
-    private lateinit var search: SearchView
 
-    // Reconocimiento de voz
+    // Reconeixament de veu
     private lateinit var recognizer: SpeechRecognizer
     private lateinit var recognizerIntent: Intent
 
-    // ViewModel
+    //ViewModel
     private val viewModel: NotesViewModel by viewModels()
 
-    // Variables de filtro
-    var searchedCategory: String = "All"
-    var searchedName: String = ""
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
-        // Inflar layout
         val view = inflater.inflate(R.layout.fragment_home, container, false)
 
-        // Botones
+        // Obtenir referència
         val bin = view.findViewById<ImageButton>(R.id.iBtnBin)
         val voiceBtn = view.findViewById<ImageButton>(R.id.voiceRecognition)
         val filterBtn = view.findViewById<ImageButton>(R.id.filter)
 
-        // Ir a la papelera
         bin.setOnClickListener {
             parentFragmentManager.beginTransaction()
                 .replace(R.id.fragmentContainer, Bin())
@@ -62,63 +57,39 @@ class Home : Fragment() {
                 .commit()
         }
 
-        // Configurar RecyclerView
+        // 1. Obtenir referència al RecyclerView del layout
         recyclerView = view.findViewById(R.id.notes)
-        search = view.findViewById(R.id.search)
+
+        // 2. Configurar LayoutManager (com es col·loquen les files)
         recyclerView.layoutManager = LinearLayoutManager(context)
 
-        // Adaptador con acciones
-        recyclerViewAdapter = RecyclerViewAdapter(
-            items = NoteList.items,
 
+        // 3. Crear l'Adapter passant les dades + funció de callback per clics
+        recyclerViewAdapter = RecyclerViewAdapter(
+            items = emptyList(),
             // Abrir editor
             onItemClick = { item ->
-                val editorFragment = NoteEditor()
-                val bundle = Bundle().apply {
-                    item.id?.let { putLong("NOTE_ID", it) }
-                    putString("NOTE_TITLE", item.title)
-                    putString("NOTE_SUBTITLE", item.subtitle)
-                    putString("NOTE_TEXT", item.text)
-                    putString("CATEGORIA", item.category.name)
-                }
-                editorFragment.arguments = bundle
-
-                parentFragmentManager.beginTransaction()
-                    .replace(R.id.fragmentContainer, editorFragment)
-                    .addToBackStack(null)
-                    .commit()
             },
 
             // Mover a papelera
             onMoveToBinClick = { item ->
-                NoteList.items.remove(item)
-                NoteBinList.items.add(item)
-                applyFilter()
             },
 
             // Eliminar definitivamente
             onDeleteClick = { item ->
-                item.id?.let { viewModel.deleteNote(it) }
-                NoteList.items.remove(item)
-                applyFilter()
             }
         )
 
+        // 5. Assignar l'Adapter al RecyclerView
         recyclerView.adapter = recyclerViewAdapter
 
-        // Filtro por texto
-        search.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean = false
+        // 6.- Avisem a l'adapter que rebra una llista
+        viewModel.notes.observe(viewLifecycleOwner) { listaNotas ->
+            recyclerViewAdapter.updateList(listaNotas)
+        }
 
-            override fun onQueryTextChange(newText: String?): Boolean {
-                searchedName = newText?.lowercase() ?: ""
-                applyFilter()
-                return true
-            }
-        })
-
-        // Botón de filtro
-        filterBtn.setOnClickListener { showCategoryPopupMenu(it) }
+        //7.- Carguem la llista
+        viewModel.cargarNotas()
 
         // Inicializar reconocimiento de voz
         initVoiceRecognition()
@@ -140,31 +111,6 @@ class Home : Fragment() {
                 startVoiceRecognition()
             }
         }
-
-        // Cargar notas desde ViewModel
-        viewModel.notasLoaded.observe(viewLifecycleOwner) { notasDTO ->
-            NoteList.items.clear()
-
-            val notasItem = notasDTO.map { dto ->
-                NotaItem(
-                    id = dto.id,
-                    title = dto.title,
-                    subtitle = dto.subtitle,
-                    text = dto.text,
-                    category = TypeNote.Simple,
-                    color = SelectedColor.White,
-                    isPinned = false,
-                    timeReminder = null,
-                    userShared = null,
-                    userShareStatus = SharedStatus.pending,
-                    ownerId = null
-                )
-            }
-
-            NoteList.items.addAll(notasItem)
-            applyFilter()
-        }
-
         return view
     }
 
@@ -224,52 +170,6 @@ class Home : Fragment() {
     // Iniciar escucha del micrófono
     private fun startVoiceRecognition() {
         recognizer.startListening(recognizerIntent)
-    }
-
-    // Filtro por categoría y nombre
-    private fun applyFilter() {
-        val listaFiltrada = ArrayList<NotaItem>()
-
-        for (note in NoteList.items) {
-
-            val coincideCategoria =
-                if (searchedCategory == "All") true
-                else note.category.name == searchedCategory
-
-            val coincideNombre =
-                if (searchedName.isEmpty()) true
-                else note.title.lowercase().contains(searchedName)
-
-            if (coincideCategoria && coincideNombre) {
-                listaFiltrada.add(note)
-            }
-        }
-
-        recyclerViewAdapter.updateList(listaFiltrada)
-    }
-
-    // Menú emergente para filtrar por categoría
-    private fun showCategoryPopupMenu(view: View) {
-        val popup = PopupMenu(requireContext(), view)
-        popup.menuInflater.inflate(R.menu.note_filter, popup.menu)
-
-        popup.setOnMenuItemClickListener { menuItem ->
-
-            if (menuItem.itemId == R.id.category_normal) {
-                searchedCategory = "Simple"
-            } else if (menuItem.itemId == R.id.category_agenda) {
-                searchedCategory = "Reminder"
-            } else if (menuItem.itemId == R.id.category_shared) {
-                searchedCategory = "Shared"
-            } else {
-                searchedCategory = "All"
-            }
-
-            applyFilter()
-            true
-        }
-
-        popup.show()
     }
 
     // Destruir recognizer

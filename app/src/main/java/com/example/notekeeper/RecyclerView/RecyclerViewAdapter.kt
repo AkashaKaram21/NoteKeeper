@@ -47,17 +47,6 @@ class RecyclerViewAdapter(
                         onMoveToBinClick?.invoke(item)
                         true
                     }
-                    R.id.action_pin_note -> {
-                        if (item.isPinned == true) {
-                            item.isPinned = false
-                        } else {
-                            item.isPinned = true
-                        }
-
-                        notifyItemChanged(position)
-                        true
-                    }
-
                     R.id.eliminarNota -> {
                         onDeleteClick?.invoke(item)
                         true

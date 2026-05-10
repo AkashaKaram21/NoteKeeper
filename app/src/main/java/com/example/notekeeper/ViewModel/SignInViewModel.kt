@@ -78,7 +78,23 @@ class SignInViewModel : ViewModel() {
 
     // Funció per registrar l'usuari
     fun registrarUsuari(email: String, pass: String) {
-        if (UserRepository.emailExisteix(email)) {
+        //Els camps no poden estar buids
+        if (email.isEmpty() && pass.isEmpty()) {
+            _errorMessage.value = "Tots els camps són obligatoris"
+            return
+
+        }
+
+        if (email.isEmpty()) {
+            _errorMessage.value = "El email no pot estar buid"
+            return
+        }
+
+        if (pass.isEmpty()) {
+            _errorMessage.value = "El password no pot estar buid"
+            return
+        }
+            if (UserRepository.emailExisteix(email)) {
             // Si l'email ja està agafat, mostrem error
             _errorMessage.value = "Aquest email ja està registrat"
         } else {

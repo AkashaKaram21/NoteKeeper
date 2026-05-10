@@ -1,0 +1,9 @@
+DROP TABLE IF EXISTS notes;
+
+CREATE TABLE notes (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    subtitle VARCHAR(255) NOT NULL,
+    text TEXT NOT NULL,
+    category VARCHAR(50) NOT NULL
+);

@@ -1,5 +1,7 @@
 package com.example.notekeeper.Retrofit
 
+import com.example.notekeeper.RecyclerView.TypeNote
+
 /**
  * DTO para las peticiones POST/PUT al servidor
  *
@@ -9,5 +11,5 @@ data class NotaRequestDTO(
     val title: String,
     val subtitle: String,
     val text: String,
-    val category: String
+    val category: TypeNote
 )

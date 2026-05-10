@@ -30,7 +30,8 @@ class SignIn : Fragment() {
         val etPassword = view.findViewById<EditText>(R.id.password)
         val tvEmailLabel = view.findViewById<TextView>(R.id.tvEmailLabel)
         val tvPassLabel = view.findViewById<TextView>(R.id.tvPassLabel)
-        val btnSignIn = view.findViewById<Button>(R.id.btnInciarSession)
+        val btnSignIn = view.findViewById<Button>(R.id.btnRegistrar)
+        val tvError = view.findViewById<TextView>(R.id.tvMissatgeError)
 
         // Listeners de text per validar en temps real
         etEmail.addTextChangedListener {
@@ -41,9 +42,6 @@ class SignIn : Fragment() {
         }
 
         // Observers per actualitzar colors, textos i el botó
-        signInViewModel.isSignInEnabled.observe(viewLifecycleOwner) { activo ->
-            btnSignIn.isEnabled = activo
-        }
         signInViewModel.emailLabelText.observe(viewLifecycleOwner) { nuevoTexto ->
             tvEmailLabel.text = nuevoTexto
         }
@@ -56,6 +54,20 @@ class SignIn : Fragment() {
         signInViewModel.passLabelColor.observe(viewLifecycleOwner) { nuevoColor ->
             tvPassLabel.setTextColor(nuevoColor)
         }
+        //Usamos el object observe para mostrarlo
+        signInViewModel.errorMessage.observe(viewLifecycleOwner, object : androidx.lifecycle.Observer<String?> {
+            override fun onChanged(error: String?) {
+                // Si el ViewModel nos manda un mensaje
+                if (error != null) {
+                    tvError.setText(error)
+                    tvError.setVisibility(View.VISIBLE)
+                } else {
+                    // Si el mensaje es nulo, lo ocultamos
+                    tvError.setText("")
+                    tvError.setVisibility(View.GONE)
+                }
+            }
+        })
 
         // Quan el registre és correcte (REGISTRAT), anem a Profile
         signInViewModel.signInActionEvent.observe(viewLifecycleOwner) { action ->
