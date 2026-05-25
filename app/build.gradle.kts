@@ -1,6 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
-    //id("com.google.gms.google-services")
+     id("com.google.gms.google-services")
 }
 
 android {
@@ -107,4 +107,15 @@ dependencies {
 
     // Librería para testear Fragments en aislamiento
     debugImplementation("androidx.fragment:fragment-testing:1.8.5")
+
+    //firebase
+    implementation(platform("com.google.firebase:firebase-bom:34.14.0"))
+    implementation("com.google.firebase:firebase-analytics")
+
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:34.0.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-firestore")
+
+    implementation("com.squareup.retrofit2:converter-scalars:2.9.0")
 }
