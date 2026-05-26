@@ -7,13 +7,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.content.Intent
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import com.example.notekeeper.RecyclerView.TypeNote
 import com.example.notekeeper.Retrofit.NotesViewModel
 
 class Add : Fragment() {
 
-    private val viewModel: NotesViewModel by viewModels()
+    private val viewModel: NotesViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -52,5 +53,10 @@ class Add : Fragment() {
             .replace(R.id.fragmentContainer, NoteEditor())
             .addToBackStack(null)
             .commit()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.incrementarVisita("add")
     }
 }
