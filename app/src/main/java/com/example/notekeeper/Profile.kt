@@ -6,9 +6,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
+import androidx.fragment.app.activityViewModels
 import com.example.notekeeper.R
+import com.example.notekeeper.Retrofit.NotesViewModel
+import kotlin.getValue
 
 class Profile : Fragment() {
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -38,4 +42,5 @@ class Profile : Fragment() {
 
         return view
     }
+
 }
