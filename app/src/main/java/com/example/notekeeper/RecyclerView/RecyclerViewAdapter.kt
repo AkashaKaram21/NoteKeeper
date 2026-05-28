@@ -9,9 +9,6 @@ import com.example.notekeeper.R
 class RecyclerViewAdapter(
     private var items: List<NotaItem>,
     private val onItemClick: (NotaItem) -> Unit,
-    private val isBin: Boolean = false,
-    private val onMoveToBinClick: ((NotaItem) -> Unit)? = null,
-    private val onRecoverClick: ((NotaItem) -> Unit)? = null,
     private val onDeleteClick: ((NotaItem) -> Unit)? = null
 ) : RecyclerView.Adapter<RecyclerViewHolder>() {
 
@@ -30,11 +27,7 @@ class RecyclerViewAdapter(
         holder.iBtnMenu.setOnClickListener { view ->
             val popup = PopupMenu(view.context, view)
 
-            if (isBin) {
-                popup.menuInflater.inflate(R.menu.menu_bin, popup.menu)
-            } else {
-                popup.menuInflater.inflate(R.menu.menu_nota_item, popup.menu)
-            }
+            popup.menuInflater.inflate(R.menu.menu_nota_item, popup.menu)
 
             popup.setOnMenuItemClickListener { menuItem ->
                 when (menuItem.itemId) {
@@ -43,19 +36,10 @@ class RecyclerViewAdapter(
                         onItemClick(item)
                         true
                     }
-                    R.id.action_move_to_bin -> {
-                        onMoveToBinClick?.invoke(item)
-                        true
-                    }
                     R.id.eliminarNota -> {
                         onDeleteClick?.invoke(item)
                         true
                     }
-                    R.id.recuperarNota -> {
-                        onRecoverClick?.invoke(item)
-                        true
-                    }
-
                     else -> false
                 }
             }

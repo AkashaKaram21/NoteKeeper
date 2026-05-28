@@ -9,29 +9,30 @@
     tools:context=".Home">
 
     <ImageButton
-        android:id="@+id/iBtnBin"
+        android:id="@+id/voiceRecognition"
         android:layout_width="30dp"
         android:layout_height="30dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginEnd="20dp"
         android:layout_marginTop="20sp"
-        android:src="@drawable/bin"
+        android:src="@drawable/baseline_keyboard_voice_24"
         android:background="@android:color/transparent"
         android:scaleType="fitCenter"
         app:tint="@color/white" />
 
+
     <ImageButton
-        android:id="@+id/voiceRecognition"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:src="@drawable/baseline_keyboard_voice_24"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/iBtnBin"
-        android:layout_marginEnd="20dp"
-        android:layout_marginTop="20sp"
-        android:background="@color/transparent"
-        />
+            android:id="@+id/firebase"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:src="@drawable/firebase"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/voiceRecognition"
+            android:layout_marginEnd="20dp"
+            android:layout_marginTop="20sp"
+            android:background="@color/transparent"
+            />
 
 
     <ImageView
@@ -43,7 +44,7 @@
         android:layout_marginTop="20dp"
         android:layout_marginLeft="40dp"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/iBtnBin" />
+        app:layout_constraintTop_toBottomOf="@+id/voiceRecognition" />
 
     <SearchView
         android:id="@+id/search"
