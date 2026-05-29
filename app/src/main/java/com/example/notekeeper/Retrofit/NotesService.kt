@@ -18,7 +18,7 @@ interface NotesService {
     suspend fun updateNote(
         @Path("id") id: Long,
         @Body nota: NotaRequestDTO
-    ): Response<NotaItem>
+    ): Response<String>
 
     @DELETE("notes/{id}")
     suspend fun deleteNote(@Path("id") id: Long): Response<Unit>
